@@ -1,0 +1,4 @@
+http://msdn.microsoft.com/en-us/library/ie/dn302449(v=vs.85).aspx
+http://workshop.chromeexperiments.com/examples/gui/#4--Color-Controllers
+http://jsfiddle.net/mortennobel/URvtx/
+http://bl.ocks.org/g-k/5847236

@@ -18,11 +18,21 @@
     
     uniform mat4 u_modelViewPerspective;
     
+    uniform float u_time;
+    uniform vec3 u_mincolor;
+    uniform vec3 u_maxcolor;
+    
+    varying vec3 fs_color; //input
+
     void main(void)
     {
       // NOTE : according to the WebGL standard, 0.0f is not accepted
-		  float height = 0.0;
+          float s_contrib = sin(position.x*2.0*3.14159 + u_time);
+          float t_contrib = cos(position.y*2.0*3.14159 + u_time);
+          float height = s_contrib * t_contrib;
 
+          float alpha = (height+1.0)/2.0;
+          fs_color = mix(u_maxcolor/255.0, u_mincolor/255.0,alpha );
       // NOTE : gl_Position is always a vec4
 		  gl_Position = u_modelViewPerspective * vec4(vec3(position, height), 1.0);
     }
@@ -32,11 +42,11 @@
     precision mediump float;
 
     uniform vec4 u_color;
-
+    varying vec3 fs_color;  //output
     void main(void)
     {
       // NOTE : gl_FragColor is always a vec4
-		  gl_FragColor = u_color;
+		  gl_FragColor = vec4(fs_color,1.0);
     }    
 </script>
 
@@ -64,15 +74,27 @@
 
   var persp = mat4.create();
   var view = mat4.create();
-    
+
+  //Added
+  var time = 0.0;
+  var u_timeLocation;
+  var u_mincolorLocation;
+  var u_maxcolorLocation;
+
+  var Colors = {
+      mincolor : [0, 204, 255],
+      maxcolor : [255, 51, 0]
+  };
+
   // Function called when the window is loaded
-  window.onload = function() {
-    // Add GUI component 
-    var gui = new dat.GUI();
+  window.onload = function () {
+      // Add GUI component 
+      var gui = new dat.GUI();
 
-    init();
-
-    animate();
+      gui.addColor(Colors, 'mincolor');
+      gui.addColor(Colors, 'maxcolor');
+      init();
+      animate();
   };
 
   function init() {
@@ -94,7 +116,7 @@
     mat4.lookAt(eye, center, up, view);
     
     initializeShader();
-    initializeGrid(); 
+    initializeGrid();
   }
 
 
@@ -108,11 +130,23 @@
     var mvp = mat4.create();
     mat4.multiply(persp, mv, mvp);
 
+    //Added
+    time = time + 0.02;
+    if (time == 3.14159 * 100.0)
+        time = 0.0;
+
+
     // Render  
     context.clear(context.COLOR_BUFFER_BIT | context.DEPTH_BUFFER_BIT);
 
-    context.uniformMatrix4fv(u_modelViewPerspectiveLocation, false, mvp); 
-    context.drawElements(context.LINES, numberOfIndices, context.UNSIGNED_SHORT,0);
+    context.uniformMatrix4fv(u_modelViewPerspectiveLocation, false, mvp);
+    context.drawElements(context.LINES, numberOfIndices, context.UNSIGNED_SHORT, 0);
+
+    //Added
+    context.uniform1f(u_timeLocation, time);
+    
+    context.uniform3f(u_mincolorLocation, Colors.mincolor[0], Colors.mincolor[1], Colors.mincolor[2]);
+    context.uniform3f(u_maxcolorLocation, Colors.maxcolor[0], Colors.maxcolor[1], Colors.maxcolor[2]);
 
     window.requestAnimFrame(animate);
   }
@@ -126,6 +160,11 @@
 		context.bindAttribLocation(program, positionLocation, "position");
 		u_modelViewPerspectiveLocation = context.getUniformLocation(program,"u_modelViewPerspective");
     u_colorLocation = context.getUniformLocation(program, "u_color");
+
+    //Added
+    u_timeLocation = context.getUniformLocation(program, "u_time");
+    u_mincolorLocation = context.getUniformLocation(program, "u_mincolor");
+    u_maxcolorLocation = context.getUniformLocation(program, "u_maxcolor");
 
     context.useProgram(program);
   }
