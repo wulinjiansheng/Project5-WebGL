@@ -32,7 +32,7 @@
           float height = s_contrib * t_contrib;
 
           float alpha = (height+1.0)/2.0;
-          fs_color = mix(u_maxcolor/255.0, u_mincolor/255.0,alpha );
+          fs_color = mix(u_mincolor/255.0, u_maxcolor/255.0,alpha );
       // NOTE : gl_Position is always a vec4
 		  gl_Position = u_modelViewPerspective * vec4(vec3(position, height), 1.0);
     }

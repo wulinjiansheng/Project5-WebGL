@@ -1,14 +1,14 @@
-(function() {
+(function () {
     "use strict";
     /*global window,document,Float32Array,Uint16Array,mat4,vec3,snoise*/
     /*global getShaderSource,createWebGLContext,createProgram*/
 
-    function sphericalToCartesian( r, a, e ) {
+    function sphericalToCartesian(r, a, e) {
         var x = r * Math.cos(e) * Math.cos(a);
         var y = r * Math.sin(e);
         var z = r * Math.cos(e) * Math.sin(a);
 
-        return [x,y,z];
+        return [x, y, z];
     }
 
     var NUM_WIDTH_PTS = 64;
@@ -28,7 +28,7 @@
     gl.enable(gl.DEPTH_TEST);
 
     var persp = mat4.create();
-    mat4.perspective(45.0, canvas.width/canvas.height, 0.1, 100.0, persp);
+    mat4.perspective(45.0, canvas.width / canvas.height, 0.1, 100.0, persp);
 
     var radius = 5.0;
     var azimuth = Math.PI;
@@ -64,30 +64,30 @@
         positionLocation = gl.getAttribLocation(program, "Position");
         normalLocation = gl.getAttribLocation(program, "Normal");
         texCoordLocation = gl.getAttribLocation(program, "Texcoord");
-        u_ModelLocation = gl.getUniformLocation(program,"u_Model");
-        u_ViewLocation = gl.getUniformLocation(program,"u_View");
-        u_PerspLocation = gl.getUniformLocation(program,"u_Persp");
-        u_InvTransLocation = gl.getUniformLocation(program,"u_InvTrans");
-        u_DayDiffuseLocation = gl.getUniformLocation(program,"u_DayDiffuse");
-        u_NightLocation = gl.getUniformLocation(program,"u_Night");
-        u_CloudLocation = gl.getUniformLocation(program,"u_Cloud");
-        u_CloudTransLocation = gl.getUniformLocation(program,"u_CloudTrans");
-        u_EarthSpecLocation = gl.getUniformLocation(program,"u_EarthSpec");
-        u_BumpLocation = gl.getUniformLocation(program,"u_Bump");
-        u_timeLocation = gl.getUniformLocation(program,"u_time");
-        u_CameraSpaceDirLightLocation = gl.getUniformLocation(program,"u_CameraSpaceDirLight");
+        u_ModelLocation = gl.getUniformLocation(program, "u_Model");
+        u_ViewLocation = gl.getUniformLocation(program, "u_View");
+        u_PerspLocation = gl.getUniformLocation(program, "u_Persp");
+        u_InvTransLocation = gl.getUniformLocation(program, "u_InvTrans");
+        u_DayDiffuseLocation = gl.getUniformLocation(program, "u_DayDiffuse");
+        u_NightLocation = gl.getUniformLocation(program, "u_Night");
+        u_CloudLocation = gl.getUniformLocation(program, "u_Cloud");
+        u_CloudTransLocation = gl.getUniformLocation(program, "u_CloudTrans");
+        u_EarthSpecLocation = gl.getUniformLocation(program, "u_EarthSpec");
+        u_BumpLocation = gl.getUniformLocation(program, "u_Bump");
+        u_timeLocation = gl.getUniformLocation(program, "u_time");
+        u_CameraSpaceDirLightLocation = gl.getUniformLocation(program, "u_CameraSpaceDirLight");
 
         gl.useProgram(program);
     })();
 
-    var dayTex   = gl.createTexture();
-    var bumpTex  = gl.createTexture();
+    var dayTex = gl.createTexture();
+    var bumpTex = gl.createTexture();
     var cloudTex = gl.createTexture();
     var transTex = gl.createTexture();
     var lightTex = gl.createTexture();
-    var specTex  = gl.createTexture();
+    var specTex = gl.createTexture();
 
-    function initLoadedTexture(texture){
+    function initLoadedTexture(texture) {
         gl.bindTexture(gl.TEXTURE_2D, texture);
         gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, true);
         gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, texture.image);
@@ -108,14 +108,14 @@
             gl.bufferData(gl.ARRAY_BUFFER, positions, gl.STATIC_DRAW);
             gl.vertexAttribPointer(positionLocation, 3, gl.FLOAT, false, 0, 0);
             gl.enableVertexAttribArray(positionLocation);
-            
+
             // Normals
             var normalsName = gl.createBuffer();
             gl.bindBuffer(gl.ARRAY_BUFFER, normalsName);
             gl.bufferData(gl.ARRAY_BUFFER, positions, gl.STATIC_DRAW);
             gl.vertexAttribPointer(normalLocation, 3, gl.FLOAT, false, 0, 0);
             gl.enableVertexAttribArray(normalLocation);
-            
+
             // TextureCoords
             var texCoordsName = gl.createBuffer();
             gl.bindBuffer(gl.ARRAY_BUFFER, texCoordsName);
@@ -143,31 +143,27 @@
         var indicesIndex = 0;
         var length;
 
-        for( var j = 0; j < NUM_HEIGHT_PTS; ++j )
-        {
+        for (var j = 0; j < NUM_HEIGHT_PTS; ++j) {
             var inclination = Math.PI * (j / HEIGHT_DIVISIONS);
-            for( var i = 0; i < NUM_WIDTH_PTS; ++i )
-            {
+            for (var i = 0; i < NUM_WIDTH_PTS; ++i) {
                 var azimuth = 2 * Math.PI * (i / WIDTH_DIVISIONS);
-                positions[positionsIndex++] = Math.sin(inclination)*Math.cos(azimuth);
+                positions[positionsIndex++] = Math.sin(inclination) * Math.cos(azimuth);
                 positions[positionsIndex++] = Math.cos(inclination);
-                positions[positionsIndex++] = Math.sin(inclination)*Math.sin(azimuth);
+                positions[positionsIndex++] = Math.sin(inclination) * Math.sin(azimuth);
                 texCoords[texCoordsIndex++] = i / WIDTH_DIVISIONS;
                 texCoords[texCoordsIndex++] = j / HEIGHT_DIVISIONS;
-            } 
+            }
         }
 
-        for( var j = 0; j < HEIGHT_DIVISIONS; ++j )
-        {
-            var index = j*NUM_WIDTH_PTS;
-            for( var i = 0; i < WIDTH_DIVISIONS; ++i )
-            {
-                    indices[indicesIndex++] = index + i;
-                    indices[indicesIndex++] = index + i+1;
-                    indices[indicesIndex++] = index + i+NUM_WIDTH_PTS;
-                    indices[indicesIndex++] = index + i+NUM_WIDTH_PTS;
-                    indices[indicesIndex++] = index + i+1;
-                    indices[indicesIndex++] = index + i+NUM_WIDTH_PTS+1;
+        for (var j = 0; j < HEIGHT_DIVISIONS; ++j) {
+            var index = j * NUM_WIDTH_PTS;
+            for (var i = 0; i < WIDTH_DIVISIONS; ++i) {
+                indices[indicesIndex++] = index + i;
+                indices[indicesIndex++] = index + i + 1;
+                indices[indicesIndex++] = index + i + NUM_WIDTH_PTS;
+                indices[indicesIndex++] = index + i + NUM_WIDTH_PTS;
+                indices[indicesIndex++] = index + i + 1;
+                indices[indicesIndex++] = index + i + NUM_WIDTH_PTS + 1;
             }
         }
 
@@ -182,7 +178,7 @@
     var lastMouseY = null;
 
     function handleMouseDown(event) {
-        if( event.button == 2 ) {
+        if (event.button == 2) {
             mouseLeftDown = false;
             mouseRightDown = true;
         }
@@ -208,15 +204,13 @@
 
         var deltaX = newX - lastMouseX;
         var deltaY = newY - lastMouseY;
-        
-        if( mouseLeftDown )
-        {
+
+        if (mouseLeftDown) {
             azimuth += 0.01 * deltaX;
             elevation += 0.01 * deltaY;
-            elevation = Math.min(Math.max(elevation, -Math.PI/2+0.001), Math.PI/2-0.001);
+            elevation = Math.min(Math.max(elevation, -Math.PI / 2 + 0.001), Math.PI / 2 - 0.001);
         }
-        else
-        {
+        else {
             radius += 0.01 * deltaY;
             radius = Math.min(Math.max(radius, 2.0), 10.0);
         }
@@ -229,7 +223,7 @@
     }
 
     canvas.onmousedown = handleMouseDown;
-    canvas.oncontextmenu = function(ev) {return false;};
+    canvas.oncontextmenu = function (ev) { return false; };
     document.onmouseup = handleMouseUp;
     document.onmousemove = handleMouseMove;
 
@@ -240,7 +234,7 @@
 
         var model = mat4.create();
         mat4.identity(model);
-        mat4.rotate(model, 23.4/180*Math.PI, [0.0, 0.0, 1.0]);
+        mat4.rotate(model, 23.4 / 180 * Math.PI, [0.0, 0.0, 1.0]);
         mat4.rotate(model, Math.PI, [1.0, 0.0, 0.0]);
         mat4.rotate(model, -time, [0.0, 1.0, 0.0]);
         var mv = mat4.create();
@@ -254,7 +248,7 @@
         var lightdest = vec4.create();
         vec3.normalize(lightdir);
         mat4.multiplyVec4(view, [lightdir[0], lightdir[1], lightdir[2], 0.0], lightdest);
-        lightdir = vec3.createFrom(lightdest[0],lightdest[1],lightdest[2]);
+        lightdir = vec3.createFrom(lightdest[0], lightdest[1], lightdest[2]);
         vec3.normalize(lightdir);
 
         ///////////////////////////////////////////////////////////////////////////
@@ -286,17 +280,19 @@
         gl.activeTexture(gl.TEXTURE5);
         gl.bindTexture(gl.TEXTURE_2D, specTex);
         gl.uniform1i(u_EarthSpecLocation, 5);
-        gl.drawElements(gl.TRIANGLES, numberOfIndices, gl.UNSIGNED_SHORT,0);
+        gl.drawElements(gl.TRIANGLES, numberOfIndices, gl.UNSIGNED_SHORT, 0);
+        gl.uniform1f(u_timeLocation, time);
+
 
         time += 0.001;
         window.requestAnimFrame(animate);
     }
 
     var textureCount = 0;
-        
+
     function initializeTexture(texture, src) {
         texture.image = new Image();
-        texture.image.onload = function() {
+        texture.image.onload = function () {
             initLoadedTexture(texture);
 
             // Animate once textures load.
@@ -313,4 +309,4 @@
     initializeTexture(transTex, "assets/earthtrans1024.png");
     initializeTexture(lightTex, "assets/earthlight1024.png");
     initializeTexture(specTex, "assets/earthspec1024.png");
-}());
+} ());
