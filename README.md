@@ -29,8 +29,6 @@ I implement the ripple shader based on this link: https://glsleffects.codeplex.c
 * "Attenuation", the power of a wave will weak down as it travels, the attenuation factor defines how fast the wave will weak down.
 * "Wavelength" is how far the adjacent two points of the same height is.
 
--------------------------------------------------------------------------------
--------------------------------------------------------------------------------
 PART 2:
 -------------------------------------------------------------------------------
 Given Features:
