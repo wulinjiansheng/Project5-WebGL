@@ -56,6 +56,14 @@
     var u_BumpLocation;
     var u_timeLocation;
 
+    //Added
+    var stats;
+    var u_heightmapLocation;
+    var u_hcolor1Location;
+    var u_hcolor2Location;
+    var u_hcolor3Location;
+    var u_waternoiseLocation;
+
     (function initializeShader() {
         var vs = getShaderSource(document.getElementById("vs"));
         var fs = getShaderSource(document.getElementById("fs"));
@@ -76,6 +84,13 @@
         u_BumpLocation = gl.getUniformLocation(program, "u_Bump");
         u_timeLocation = gl.getUniformLocation(program, "u_time");
         u_CameraSpaceDirLightLocation = gl.getUniformLocation(program, "u_CameraSpaceDirLight");
+
+        //Added
+        u_heightmapLocation = gl.getUniformLocation(program, "u_heightmap");
+        u_hcolor1Location = gl.getUniformLocation(program, "u_hcolor1");
+        u_hcolor2Location = gl.getUniformLocation(program, "u_hcolor2");
+        u_hcolor3Location = gl.getUniformLocation(program, "u_hcolor3");
+        u_waternoiseLocation = gl.getUniformLocation(program, "u_waternoise");
 
         gl.useProgram(program);
     })();
@@ -227,8 +242,47 @@
     document.onmouseup = handleMouseUp;
     document.onmousemove = handleMouseMove;
 
+    //Added
+    function initStats() {
+        stats = new Stats();
+        stats.setMode(0); // 0: fps, 1: ms
+
+        // Align top-left
+        stats.domElement.style.position = 'absolute';
+        stats.domElement.style.left = '0px';
+        stats.domElement.style.top = '0px';
+
+        document.body.appendChild(stats.domElement);
+
+
+        return stats;
+    }
+
+    //Added
+    var Datas = {
+        Heightmap: true,
+        heightcolor1: [0, 255, 0],
+        heightcolor2: [255, 255, 0],
+        heightcolor3: [255, 0, 0],
+        Waternoise: true
+    };
+
+    // Function called when the window is loaded
+    window.onload = function () {
+        // Add GUI component 
+        var gui = new dat.GUI();
+        gui.add(Datas, 'Heightmap');
+        gui.addColor(Datas, 'heightcolor1');
+        gui.addColor(Datas, 'heightcolor2');
+        gui.addColor(Datas, 'heightcolor3');
+        gui.add(Datas, 'Waternoise');
+        stats = initStats();
+    };
+
 
     function animate() {
+        if (stats)
+            stats.update();
         ///////////////////////////////////////////////////////////////////////////
         // Update
 
@@ -283,6 +337,19 @@
         gl.drawElements(gl.TRIANGLES, numberOfIndices, gl.UNSIGNED_SHORT, 0);
         gl.uniform1f(u_timeLocation, time);
 
+        //Added
+        if(Datas.Heightmap)
+            gl.uniform1i(u_heightmapLocation, 1);
+        else
+            gl.uniform1i(u_heightmapLocation, 0);
+        gl.uniform3f(u_hcolor1Location, Datas.heightcolor1[0], Datas.heightcolor1[1], Datas.heightcolor1[2]);
+        gl.uniform3f(u_hcolor2Location, Datas.heightcolor2[0], Datas.heightcolor2[1], Datas.heightcolor2[2]);
+        gl.uniform3f(u_hcolor3Location, Datas.heightcolor3[0], Datas.heightcolor3[1], Datas.heightcolor3[2]);
+
+        if(Datas.Waternoise)
+            gl.uniform1i(u_waternoiseLocation, 1);
+        else
+            gl.uniform1i(u_waternoiseLocation, 0);
 
         time += 0.001;
         window.requestAnimFrame(animate);

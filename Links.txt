@@ -4,3 +4,6 @@ http://jsfiddle.net/mortennobel/URvtx/
 http://bl.ocks.org/g-k/5847236
 http://jayconrod.com/posts/34/water-simulation-in-glsl
 https://glsleffects.codeplex.com/wikipage?title=Ripple
+http://www.dreamincode.net/forums/topic/66480-perlin-noise/
+https://github.com/mrdoob/stats.js
+http://gamedev.stackexchange.com/questions/60313/implementing-a-skybox-with-glsl-version-330
